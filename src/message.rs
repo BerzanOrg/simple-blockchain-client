@@ -61,8 +61,8 @@ impl From<&[u8]> for Message {
     }
 }
 
-impl From<Message> for Vec<u8> {
-    fn from(value: Message) -> Self {
+impl From<&Message> for Vec<u8> {
+    fn from(value: &Message) -> Self {
         match value {
             Message::JoinConsensus {} => vec![0],
             Message::OtherClients { addrs } => {
