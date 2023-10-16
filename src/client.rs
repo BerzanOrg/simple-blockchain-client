@@ -33,7 +33,7 @@ impl Client {
     pub fn join_consensus(&mut self, client_addr: SocketAddr) -> Result<(), ()> {
         let msg = Message::JoinConsensus {};
 
-        self.send_msg(msg, client_addr)?;
+        self.send_msg(&msg, client_addr)?;
 
         let mut buf = [0u8; 1000];
 
@@ -59,7 +59,7 @@ impl Client {
         }
     }
 
-    fn send_msg(&self, msg: Message, to: SocketAddr) -> Result<(), ()> {
+    fn send_msg(&self, msg: &Message, to: SocketAddr) -> Result<(), ()> {
         let buf: Vec<u8> = msg.into();
         self.socket.send_to(&buf, to).map(|_| ()).map_err(|_| ())
     }
@@ -76,8 +76,16 @@ impl Client {
                         addrs: self.others.clone(),
                     };
 
-                    if self.send_msg(msg, from).is_err() {
+                    if self.send_msg(&msg, from).is_err() {
                         eprintln!("couldn't send message to {:#?}", from)
+                    }
+
+                    let msg = Message::NewClient { addr: from };
+
+                    for &client in &self.others {
+                        if self.send_msg(&msg, client).is_err() {
+                            eprintln!("couldn't send message to {:#?}", from)
+                        }
                     }
                 }
                 Message::OtherClients { addrs: _ } => (),
